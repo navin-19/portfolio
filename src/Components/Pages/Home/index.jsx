@@ -1,665 +1,572 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
-import { motion, AnimatePresence, useAnimationFrame } from "framer-motion";
-import heroImage from "../../../assets/hero.png";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  FaArrowRight,
+  FaCalendarAlt,
+  FaCarSide,
+  FaCheckCircle,
+  FaClock,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaShieldAlt,
+  FaStar,
+  FaUsers,
+} from "react-icons/fa";
 
-/* ─── SAMPLE DATA ─── */
-const works = [
+const cars = [
   {
-    title: "Bridal Blouse",
-    tag: "Bridal",
-    desc: "Heavy bridal arri work with intricate gold zari embroidery and stone detailing.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
+    name: "Suzuki Swift",
+    type: "Compact city rides",
+    price: "From Rs.14/km",
+    rating: 4.8,
+    seats: "4 seats",
+    image:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Suzuki%20Swift%20front.jpg",
   },
   {
-    title: "Arri Embroidery",
-    tag: "Arri Work",
-    desc: "Traditional hand-done arri thread work crafted with patience and skill.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
+    name: "Maruti Suzuki Dzire",
+    type: "Corporate and airport trips",
+    price: "From Rs.18/km",
+    rating: 4.9,
+    seats: "4 seats",
+    image:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Maruti%20Suzuki%20Dzire%20VXi%20VVT%20%28front%29.JPG",
   },
   {
-    title: "Designer Saree Blouse",
-    tag: "Designer",
-    desc: "Custom-fit designer saree blouses with mirror work and sequin borders.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
+    name: "Toyota Glanza",
+    type: "Outstation and group travel",
+    price: "From Rs.24/km",
+    rating: 4.7,
+    seats: "5 seats",
+    image:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Toyota%20Glanza%20%28front%29.jpg",
   },
   {
-    title: "Casual Kurti",
-    tag: "Casual",
-    desc: "Lightweight cotton and silk kurtis stitched to precise measurements.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
-  },
-  {
-    title: "Wedding Lehenga",
-    tag: "Bridal",
-    desc: "Full lehenga blouse with heavy zardosi work, perfect for grand receptions.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
-  },
-  {
-    title: "Silk Party Wear",
-    tag: "Party",
-    desc: "Luxurious silk party blouses adorned with crystal and beadwork.",
-    images: [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1594938298603-c8148c4b3b3a?w=800&auto=format&fit=crop",
-    ],
+    name: "Toyota Innova Crysta",
+    type: "Premium chauffeur service",
+    price: "From Rs.32/km",
+    rating: 5.0,
+    seats: "7 seats",
+    image:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Toyota%20Innova%20Crysta%202.4%20Z%20front%20right.jpg",
   },
 ];
 
-/* ─── INFINITE MARQUEE CAROUSEL ─── */
-/*
- * Strategy: render the cards list TWICE side-by-side (strip A + strip B).
- * We scroll left continuously. When strip A's full width has scrolled off
- * the left edge, we silently snap x back by exactly one strip width.
- * At that moment strip B is in exactly the same visual position strip A
- * was — so the viewer sees zero discontinuity. This repeats forever.
- *
- * Initial position: we start x so that the strip begins centered in the
- * viewport, showing ~4 cards from the middle of the list.
- */
-function InfiniteCarousel({ onSelect }) {
-  const CARD_W = 260;
-  const GAP = 20;
-  const STEP = CARD_W + GAP;
-  const SPEED = 55; // px per second
+const servicePoints = [
+  {
+    icon: FaClock,
+    title: "24/7 Availability",
+    description: "Book rides anytime for local trips, airport transfers, and urgent travel plans.",
+  },
+  {
+    icon: FaShieldAlt,
+    title: "Verified Drivers",
+    description: "Every cab is paired with trained drivers, cleaned vehicles, and trip monitoring.",
+  },
+  {
+    icon: FaCalendarAlt,
+    title: "Easy Scheduling",
+    description: "Reserve now or schedule later with quick booking confirmations and reminders.",
+  },
+];
 
-  const wrapRef = useRef(null);
-  const xRef = useRef(null); // null = "not initialized yet"
-  const pauseRef = useRef(false);
-  const rafRef = useRef(null);
-  const lastTsRef = useRef(null);
-  const [tick, setTick] = useState(0); // triggers re-render for transform update
+const officeDetails = [
+  "SRI JEYARAM TRAVELS",
+  "Neithal, New Housing Unit",
+  "New Bus Stand, Thanjavur - 7",
+];
 
-  const stripW = works.length * STEP - GAP; // width of one copy of all cards
-
-  // On mount, compute the starting x so cards are centered
-  useLayoutEffect(() => {
-    if (!wrapRef.current) return;
-    const vpW = wrapRef.current.offsetWidth;
-    // Total 4 cards width centered:  vpW/2 - 2*STEP  positions card index 0 at center-left
-    // We want card index 1 to start roughly at the left edge of center-area
-    // Centering: start so that the middle of the first 4 cards aligns with viewport center
-    const centerOffset = (vpW - 4 * STEP + GAP) / 2;
-    // xRef is the translateX of the strip container
-    xRef.current = centerOffset;
-  }, [stripW]);
-
-  useEffect(() => {
-    let lastTs = null;
-
-    const loop = (ts) => {
-      if (!pauseRef.current && xRef.current !== null) {
-        const delta = lastTs === null ? 0 : ts - lastTs;
-        lastTs = ts;
-        xRef.current -= (delta / 1000) * SPEED;
-
-        // When strip A has fully scrolled off left, snap forward by one strip width
-        // (strip B is now in the exact visual position strip A just vacated)
-        if (xRef.current <= -(stripW + GAP)) {
-          xRef.current += stripW + GAP;
-        }
-
-        setTick((t) => t + 1);
-      } else {
-        lastTs = null;
-      }
-      rafRef.current = requestAnimationFrame(loop);
-    };
-
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [stripW]);
-
-  const cards = [...works, ...works]; // strip A + strip B
-
+function StarRating({ rating }) {
   return (
-    <div
-      ref={wrapRef}
-      className="relative overflow-hidden"
-      style={{ height: 370 }}
-      onMouseEnter={() => (pauseRef.current = true)}
-      onMouseLeave={() => (pauseRef.current = false)}
-    >
-      {/* Left fade */}
-      <div
-        className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10"
-        style={{ background: "linear-gradient(to right, #d1d1d1 0%, transparent 20%)" }}
-      />
-      {/* Right fade */}
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10"
-        style={{ background: "linear-gradient(to left, #d1d1d1 0%, transparent 20%)" }}
-      />
-
-      {/* The scrolling strip */}
-      <div
-        className="flex absolute top-0 left-0"
-        style={{
-          gap: GAP,
-          transform: xRef.current === null ? "none" : `translateX(${xRef.current}px)`,
-          willChange: "transform",
-        }}
-      >
-        {cards.map((item, i) => (
-          <motion.div
-            key={i}
-            className="flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer relative group shadow-md"
-            style={{ width: CARD_W, height: 350 }}
-            whileHover={{ scale: 1.05, y: -8 }}
-            transition={{ type: "spring", stiffness: 320, damping: 22 }}
-            onClick={() => onSelect(item)}
-          >
-            <img
-              src={item.images[0]}
-              alt={item.title}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-3 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#e7cdb5] block mb-1">
-                {item.tag}
-              </span>
-              <h3 className="text-white font-bold text-lg leading-tight">{item.title}</h3>
-              <p className="text-white/70 text-xs mt-1">Click to view ↗</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+    <div className="flex items-center gap-1 text-amber-400">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <FaStar key={index} className={index < Math.round(rating) ? "opacity-100" : "opacity-30"} />
+      ))}
+      <span className="ml-2 text-sm font-semibold text-slate-600">{rating.toFixed(1)}</span>
     </div>
   );
 }
 
-/* ─── IMAGE MODAL ─── */
-function Modal({ item, onClose }) {
-  const [preview, setPreview] = useState(0);
+function BookingModal({ open, onClose, defaultCar }) {
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    pickup: "",
+    drop: "",
+    datetime: "",
+    car: defaultCar || cars[0].name,
+  });
 
   useEffect(() => {
-    const handler = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+    if (!open) {
+      setSubmitted(false);
+      setForm({
+        pickup: "",
+        drop: "",
+        datetime: "",
+        car: defaultCar || cars[0].name,
+      });
+    }
+  }, [open, defaultCar]);
 
-  const prev = () => setPreview((p) => (p - 1 + item.images.length) % item.images.length);
-  const next = () => setPreview((p) => (p + 1) % item.images.length);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  const updateField = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setSubmitted(true);
+  };
 
   return (
     <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-
+      {open && (
         <motion.div
-          className="relative rounded-3xl overflow-hidden w-full max-w-2xl z-10 border border-white shadow-2xl bg-white/95 backdrop-blur"
-          initial={{ scale: 0.85, opacity: 0, y: 40 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.85, opacity: 0, y: 40 }}
-          transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
         >
-          {/* Main image */}
-          <div className="relative overflow-hidden" style={{ height: 360 }}>
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={preview}
-                src={item.images[preview]}
-                alt={item.title}
-                className="w-full h-full object-cover"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.25 }}
-              />
-            </AnimatePresence>
-
-            {/* Nav arrows */}
-            {item.images.length > 1 && (
-              <>
+          <motion.div
+            className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-white/15 bg-white shadow-2xl"
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+            transition={{ duration: 0.24 }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="bg-slate-950 px-6 py-5 text-white sm:px-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">Reserve Your Ride</p>
+                  <h3 className="mt-2 text-2xl font-semibold">Book a cab in under a minute</h3>
+                </div>
                 <button
-                  onClick={prev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-sky-100 bg-white/85 backdrop-blur flex items-center justify-center shadow hover:bg-sky-50 transition"
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-full border border-white/20 px-3 py-1 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
                 >
-                  <svg className="w-5 h-5 text-[#0f172a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
+                  Close
                 </button>
-                <button
-                  onClick={next}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-sky-100 bg-white/85 backdrop-blur flex items-center justify-center shadow hover:bg-sky-50 transition"
-                >
-                  <svg className="w-5 h-5 text-[#0f172a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            )}
-
-            {/* Tag badge */}
-            <span className="absolute top-4 left-4 bg-gradient-to-r from-[#67e8f9] to-[#818cf8] text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-              {item.tag}
-            </span>
-
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur text-white flex items-center justify-center hover:bg-black/70 transition"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Info + thumbnails */}
-          <div className="p-5">
-            <h3 className="text-2xl font-bold text-[#0f172a] mb-1">{item.title}</h3>
-            <p className="text-[#64748b] text-sm mb-4">{item.desc}</p>
-
-            {/* Thumbnails */}
-            {item.images.length > 1 && (
-              <div className="flex gap-3">
-                {item.images.map((img, idx) => (
-                  <motion.button
-                    key={idx}
-                    onClick={() => setPreview(idx)}
-                    whileHover={{ scale: 1.07 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative rounded-xl overflow-hidden flex-shrink-0 transition-all ${
-                      preview === idx
-                        ? "ring-2 ring-[#38bdf8] ring-offset-2 ring-offset-white opacity-100"
-                        : "opacity-60 hover:opacity-90"
-                    }`}
-                    style={{ width: 72, height: 72 }}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </motion.button>
-                ))}
               </div>
-            )}
-
-            {/* Dot indicators */}
-            <div className="flex gap-2 mt-4 items-center">
-              {item.images.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setPreview(idx)}
-                  className={`rounded-full transition-all ${
-                    preview === idx
-                      ? "bg-[#38bdf8] w-6 h-2"
-                      : "bg-sky-100 w-2 h-2 hover:bg-sky-200"
-                  }`}
-                />
-              ))}
             </div>
-          </div>
+
+            {submitted ? (
+              <div className="px-6 py-8 sm:px-8">
+                <div className="rounded-[1.5rem] bg-emerald-50 p-6 text-left">
+                  <div className="flex items-center gap-3 text-emerald-700">
+                    <FaCheckCircle className="text-2xl" />
+                    <div>
+                      <p className="text-lg font-semibold">Booking request submitted</p>
+                      <p className="text-sm text-emerald-800/80">
+                        Pickup from {form.pickup || "your location"} to {form.drop || "destination"} for {form.car}.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="mt-6 inline-flex rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form className="grid gap-4 px-6 py-8 sm:px-8" onSubmit={handleSubmit}>
+                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                  Pickup location
+                  <input
+                    type="text"
+                    value={form.pickup}
+                    onChange={updateField("pickup")}
+                    placeholder="Enter pickup point"
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                  Drop location
+                  <input
+                    type="text"
+                    value={form.drop}
+                    onChange={updateField("drop")}
+                    placeholder="Enter destination"
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                    required
+                  />
+                </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-medium text-slate-700">
+                    Date & time
+                    <input
+                      type="datetime-local"
+                      value={form.datetime}
+                      onChange={updateField("datetime")}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                      required
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-slate-700">
+                    Car selection
+                    <select
+                      value={form.car}
+                      onChange={updateField("car")}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white"
+                    >
+                      {cars.map((car) => (
+                        <option key={car.name} value={car.name}>
+                          {car.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <button
+                  type="submit"
+                  className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-sky-500 px-6 py-3 font-semibold text-white transition hover:bg-sky-600"
+                >
+                  Submit Booking
+                  <FaArrowRight />
+                </button>
+              </form>
+            )}
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 }
 
-/* ─── HEADER ─── */
-function Header() {
+function Header({ onBook }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const links = ["Home", "About", "Works", "Contact"];
+  const links = ["home", "about", "cars", "contact"];
 
   return (
-    <motion.header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={{
-        background: scrolled ? "rgba(247,252,255,0.78)" : "transparent",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
-        boxShadow: scrolled ? "0 12px 36px rgba(96,165,250,0.12)" : "none",
-      }}
-    >
-      <div className="max-w-6xl mx-auto flex justify-between items-center px-5 py-4">
-        {/* Logo */}
-        <a href="#home" className="flex items-center gap-2 group no-underline">
-          <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7dd3fc] via-[#60a5fa] to-[#6366f1] flex items-center justify-center text-white text-sm font-bold shadow-md">
-            SB
+    <header className="fixed inset-x-0 top-0 z-50">
+      <div className="mx-auto mt-4 flex max-w-7xl items-center justify-between rounded-full border border-white/40 bg-white/80 px-4 py-2.5 shadow-lg shadow-slate-900/5 backdrop-blur md:px-5">
+        <a href="#home" className="flex items-center gap-2.5 no-underline">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-sm text-sky-300">
+            <FaCarSide />
           </span>
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-[#1d4ed8]">Sumana</span>
-            <span className="text-[#0f172a]"> Boutique</span>
-          </span>
+          <div className="text-left">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-sky-600">Cab Booking</p>
+            <p className="text-sm font-semibold text-slate-950 sm:text-base">SRI JEYARAM TRAVELS</p>
+          </div>
         </a>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden items-center gap-6 md:flex">
           {links.map((link) => (
             <a
               key={link}
-              href={`#${link.toLowerCase()}`}
-              className="relative px-4 py-2 text-sm font-semibold text-[#334155] hover:text-[#1d4ed8] transition-colors group no-underline"
+              href={`#${link}`}
+              className="text-sm font-medium capitalize text-slate-700 transition hover:text-sky-600 no-underline"
             >
-              {link.toUpperCase()}
-              <span className="absolute bottom-1 left-4 right-4 h-0.5 bg-gradient-to-r from-[#7dd3fc] to-[#a78bfa] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+              {link}
             </a>
           ))}
-          <a
-            href="#contact"
-            className="ml-4 border border-sky-200 bg-white/80 hover:bg-sky-50 text-[#1d4ed8] text-sm font-semibold px-5 py-2 rounded-full shadow transition-colors backdrop-blur no-underline"
-          >
-            Book Now
-          </a>
         </nav>
 
-        {/* Mobile hamburger */}
+        <div className="hidden items-center md:flex">
+          <button
+            type="button"
+            onClick={onBook}
+            className="rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600"
+          >
+            Book a Cab
+          </button>
+        </div>
+
         <button
-          className="md:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 !bg-transparent !border-0"
-          onClick={() => setMenuOpen(!menuOpen)}
+          type="button"
           aria-label="Toggle menu"
+          onClick={() => setMenuOpen((current) => !current)}
+          className="inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 md:hidden"
         >
-          <motion.span
-            className="block w-6 h-0.5 bg-[#1e293b] rounded-full"
-            animate={menuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
-            transition={{ duration: 0.25 }}
-          />
-          <motion.span
-            className="block w-6 h-0.5 bg-[#1e293b] rounded-full"
-            animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
-            transition={{ duration: 0.2 }}
-          />
-          <motion.span
-            className="block w-6 h-0.5 bg-[#1e293b] rounded-full"
-            animate={menuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
-            transition={{ duration: 0.25 }}
-          />
+          Menu
         </button>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            className="md:hidden bg-white/90 backdrop-blur border-t border-sky-100"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            className="mx-4 mt-3 rounded-[1.75rem] border border-white/40 bg-white/95 p-4 shadow-xl backdrop-blur md:hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
           >
-            <nav className="flex flex-col px-5 py-4 gap-1">
+            <div className="flex flex-col gap-2 text-left">
               {links.map((link) => (
                 <a
                   key={link}
-                  href={`#${link.toLowerCase()}`}
+                  href={`#${link}`}
                   onClick={() => setMenuOpen(false)}
-                  className="py-3 text-sm font-semibold text-[#334155] hover:text-[#1d4ed8] border-b border-sky-100 transition-colors no-underline"
+                  className="rounded-2xl px-4 py-3 text-sm font-medium capitalize text-slate-700 transition hover:bg-slate-100 no-underline"
                 >
-                  {link.toUpperCase()}
+                  {link}
                 </a>
               ))}
-              <a
-                href="#contact"
-                onClick={() => setMenuOpen(false)}
-                className="mt-3 border border-sky-200 bg-white text-[#1d4ed8] text-sm font-semibold px-5 py-2.5 rounded-full text-center backdrop-blur no-underline"
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onBook();
+                }}
+                className="mt-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
               >
-                Book Now
-              </a>
-            </nav>
+                Book a Cab
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }
 
-/* ─── HOME / HERO ─── */
-function Home() {
+function Hero({ onBook }) {
   return (
-    <section
-      id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #fdfbff 0%, #eef8ff 34%, #e0f2fe 68%, #fff1f2 100%)",
-      }}
-    >
-      {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 rounded-full opacity-30 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(34,211,238,0.35), transparent 65%)" }} />
-      <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full opacity-20 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(251,113,133,0.22), transparent 68%)" }} />
-
-      <div className="relative text-center max-w-2xl px-5 pt-24 pb-16">
-        <motion.p
-          className="text-xs font-bold uppercase tracking-[0.35em] text-[#0ea5e9] mb-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Handcrafted · Bespoke · Timeless
-        </motion.p>
-        <motion.h1
-          className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-[#0f172a] leading-tight mb-5"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          Elegant
-          <span className="block text-transparent bg-clip-text"
-            style={{ backgroundImage: "linear-gradient(90deg, #06b6d4, #3b82f6, #fb7185)" }}>
-            Tailoring &
-          </span>
-          Designer Wear
-        </motion.h1>
-        <motion.p
-          className="text-[#475569] text-lg mb-8 max-w-md mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          Specialised in Arri works, wedding blouses & designer saree blouses — crafted with love.
-        </motion.p>
-        <motion.div
-          className="flex flex-col sm:flex-row gap-3 justify-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
-        >
-          <a href="#works" className="no-underline">
-            <motion.button
-              className="border border-sky-200 bg-white/85 hover:bg-sky-50 text-[#0f172a] font-semibold px-8 py-3 rounded-full shadow-lg backdrop-blur transition-colors"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Explore Works
-            </motion.button>
-          </a>
-          <a href="#contact" className="no-underline">
-            <motion.button
-              className="bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#fb7185] text-white font-semibold px-8 py-3 rounded-full transition-colors shadow-lg"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Book an Appointment
-            </motion.button>
-          </a>
-        </motion.div>
+    <section id="home" className="relative flex min-h-screen items-center overflow-hidden bg-slate-950 pt-24 text-white">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.35),transparent_30%),linear-gradient(115deg,rgba(2,6,23,0.95),rgba(15,23,42,0.82),rgba(3,105,161,0.55))]" />
+        <div className="absolute inset-x-0 top-24 mx-auto h-64 max-w-4xl rounded-full bg-sky-400/15 blur-3xl" />
       </div>
+
+      <div className="relative mx-auto max-w-5xl px-4 py-10 text-center sm:px-6 lg:px-8 lg:py-12">
+        <div className="mx-auto max-w-3xl">
+          <motion.p
+            className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-200"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            Trusted city and outstation rides
+          </motion.p>
+          <motion.h1
+            className="mt-5 text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+          >
+            Ride across the city with clean cars, safe drivers, and quick booking.
+          </motion.h1>
+          <motion.p
+            className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16 }}
+          >
+            SRI JEYARAM TRAVELS delivers 24/7 local rides, airport pickups, corporate travel, and outstation trips with
+            transparent pricing and real support.
+          </motion.p>
+
+          <motion.div
+            className="mt-6 flex flex-col gap-3 sm:flex-row"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24 }}
+          >
+            <button
+              type="button"
+              onClick={onBook}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-sky-400 px-6 py-3.5 text-base font-semibold text-slate-950 transition hover:bg-sky-300"
+            >
+              Book Cars
+              <FaArrowRight />
+            </button>
+            <a
+              href="#about"
+              className="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3.5 text-base font-semibold text-white transition hover:bg-white/10 no-underline"
+            >
+              View Details
+            </a>
+          </motion.div>
+
+          <motion.div
+            className="mt-6 grid gap-3 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.32 }}
+          >
+            <div className="rounded-[1.25rem] border border-white/10 bg-white/10 p-3.5 backdrop-blur-sm">
+              <p className="text-2xl font-semibold">15k+</p>
+              <p className="mt-1 text-xs text-slate-200 sm:text-sm">Completed rides this year</p>
+            </div>
+            <div className="rounded-[1.25rem] border border-white/10 bg-white/10 p-3.5 backdrop-blur-sm">
+              <p className="text-2xl font-semibold">4.9/5</p>
+              <p className="mt-1 text-xs text-slate-200 sm:text-sm">Average customer rating</p>
+            </div>
+            <div className="rounded-[1.25rem] border border-white/10 bg-white/10 p-3.5 backdrop-blur-sm">
+              <p className="text-2xl font-semibold">24/7</p>
+              <p className="mt-1 text-xs text-slate-200 sm:text-sm">Call center and booking support</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
     </section>
   );
 }
 
-/* ─── ABOUT ─── */
 function About() {
-  const features = [
-    { icon: "✂️", title: "Expert Tailoring", desc: "20+ years of bespoke stitching experience." },
-    { icon: "🪡", title: "Arri Work", desc: "Authentic hand-embroidery passed through generations." },
-    { icon: "💍", title: "Bridal Special", desc: "Heavy bridal sets for weddings and receptions." },
-    { icon: "📐", title: "Custom Fit", desc: "Every piece is crafted to your exact measurements." },
-  ];
-
   return (
-    <section id="about" className="py-20 px-5 bg-white">
-      <div className="max-w-5xl mx-auto text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-pink-500 mb-2">Who We Are</p>
-        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">About Arri Designs</h2>
-        <p className="text-gray-500 max-w-xl mx-auto mb-14 text-lg">
-          We blend traditional artistry with modern design sensibilities to create garments that feel
-          as extraordinary as the moments you wear them for.
-        </p>
+    <section id="about" className="bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] py-20">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+        <motion.div
+          className="rounded-[2rem] bg-slate-950 p-8 text-left text-white shadow-xl shadow-slate-900/10"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">About SRI JEYARAM TRAVELS</p>
+          <h2 className="mt-4 text-4xl font-semibold leading-tight">Reliable cab service built for daily travel and long trips.</h2>
+          <p className="mt-5 text-base leading-8 text-slate-200">
+            We help commuters, families, tourists, and corporate teams move comfortably with clean vehicles,
+            experienced chauffeurs, and round-the-clock booking support.
+          </p>
+          <div className="mt-8 grid gap-4">
+            {officeDetails.map((line) => (
+              <div key={line} className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                {line}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            Owner: M.DURAI PANDIYAN
+          </div>
+          <div className="mt-8 flex flex-wrap gap-4 text-sm text-slate-200">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2">
+              <FaPhoneAlt className="text-sky-300" />
+              9597968252 / 9360329290
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2">
+              <FaEnvelope className="text-sky-300" />
+              rides@skylinecabs.in
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2">
+              <FaPhoneAlt className="text-sky-300" />
+              WhatsApp: 8870845252
+            </span>
+          </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {features.map((f, i) => (
-            <motion.div
-              key={i}
-              className="bg-pink-50 rounded-2xl p-6 text-left"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <span className="text-3xl block mb-3">{f.icon}</span>
-              <h3 className="font-bold text-gray-900 mb-1">{f.title}</h3>
-              <p className="text-gray-500 text-sm">{f.desc}</p>
-            </motion.div>
-          ))}
+        <div className="grid gap-4">
+          <motion.div
+            className="rounded-[2rem] border border-slate-200 bg-white p-8 text-left shadow-lg shadow-slate-900/5"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-600">What We Offer</p>
+            <h3 className="mt-3 text-3xl font-semibold text-slate-950">Safe local rides, airport drops, and premium intercity travel.</h3>
+            <p className="mt-4 text-base leading-8 text-slate-600">
+              Every ride is backed by transparent pricing, well-maintained vehicles, and customer support that stays
+              available before and after your trip.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {servicePoints.map((point, index) => {
+              const Icon = point.icon;
+              return (
+                <motion.article
+                  key={point.title}
+                  className="rounded-[1.75rem] border border-slate-200 bg-white p-6 text-left shadow-lg shadow-slate-900/5"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ delay: index * 0.08 }}
+                >
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                    <Icon />
+                  </span>
+                  <h4 className="mt-4 text-xl font-semibold text-slate-950">{point.title}</h4>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{point.description}</p>
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── WORKS ─── */
-function AboutSection() {
-  const features = [
-    {
-      label: "01",
-      title: "Expert Tailoring",
-      desc: "20+ years of bespoke stitching experience for bridal, festive, and daily wear.",
-    },
-    {
-      label: "02",
-      title: "Signature Arri Work",
-      desc: "Detailed hand-embroidery that brings heritage craftsmanship into every design.",
-    },
-    {
-      label: "03",
-      title: "Custom Bridal Focus",
-      desc: "Statement pieces designed for weddings, receptions, and milestone celebrations.",
-    },
-    {
-      label: "04",
-      title: "Made To Measure",
-      desc: "Every blouse and outfit is shaped around your fit, comfort, and styling needs.",
-    },
-  ];
-
-  const stats = [
-    { value: "20+", label: "Years of tailoring experience" },
-    { value: "500+", label: "Custom pieces delivered with care" },
-    { value: "100%", label: "Fit-focused design approach" },
-  ];
-
+function Fleet({ onBookCar }) {
   return (
-    <section
-      id="about"
-      className="py-20 px-5"
-      style={{ background: "linear-gradient(180deg, #f8fdff 0%, #eef8ff 55%, #fff4f7 100%)" }}
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="grid items-center gap-8 lg:grid-cols-[0.82fr_1.18fr]">
-          <motion.div
-            className="relative mx-auto hidden w-full max-w-[380px] overflow-hidden rounded-[2rem] border border-white/70 bg-white/60 shadow-xl backdrop-blur lg:block"
-            initial={{ opacity: 0, x: -24 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55 }}
-          >
-            <img
-              src={heroImage}
-              alt="Arri Designs tailoring and embroidery showcase"
-              className="h-full min-h-[300px] w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-left text-white sm:p-8">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.35em] text-[#dbeafe]">About Us</p>
-              <h3 className="max-w-sm text-2xl font-bold leading-tight sm:text-3xl">
-                Crafted for special moments and everyday confidence.
-              </h3>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="text-left"
-            initial={{ opacity: 0, x: 24 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, delay: 0.08 }}
-          >
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#0ea5e9]">Who We Are</p>
-            <h2 className="mb-5 text-4xl font-extrabold text-[#0f172a] sm:text-5xl">About Arri Designs</h2>
-            <p className="mb-4 text-base leading-7 text-[#475569] sm:text-lg">
-              Arri Designs brings together traditional tailoring, detailed arri embroidery, and
-              personalized styling to create pieces that feel elegant, comfortable, and truly yours.
+    <section id="cars" className="bg-slate-100 py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 text-left md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-600">Available Cars</p>
+            <h2 className="mt-3 text-4xl font-semibold text-slate-950">Pick the cab that fits your route and budget.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
+              From quick intra-city rides to spacious outstation vehicles, our fleet is designed to keep travel simple,
+              comfortable, and predictable.
             </p>
-            <p className="mb-8 text-base leading-7 text-[#64748b] sm:text-lg">
-              From bridal blouses to custom designer wear, every outfit is shaped with care,
-              precision, and an understanding of the occasion you are dressing for.
-            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onBookCar(cars[0].name)}
+            className="inline-flex w-fit items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-600"
+          >
+            Book a Cab
+            <FaArrowRight />
+          </button>
+        </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              {stats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-sky-100 bg-white/90 p-5 shadow-sm backdrop-blur">
-                  <p className="mb-1 text-3xl font-extrabold text-[#0f172a]">{stat.value}</p>
-                  <p className="text-sm leading-6 text-[#64748b]">{stat.label}</p>
+        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {cars.map((car, index) => (
+            <motion.article
+              key={car.name}
+              className="group overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-slate-900/5"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ delay: index * 0.08 }}
+              whileHover={{ y: -8 }}
+            >
+              <div className="overflow-hidden">
+                <img
+                  src={car.image}
+                  alt={car.name}
+                  className="h-56 w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="grid gap-4 p-6 text-left">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-sky-600">{car.type}</p>
+                    <h3 className="mt-1 text-2xl font-semibold text-slate-950">{car.name}</h3>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+                    {car.seats}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              className="rounded-3xl border border-sky-100 bg-white/90 p-6 text-left shadow-sm backdrop-blur"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <span className="mb-4 inline-flex rounded-full border border-sky-100 bg-gradient-to-r from-[#cffafe] to-[#fee2e2] px-3 py-1 text-xs font-bold tracking-[0.25em] text-[#0369a1]">
-                {f.label}
-              </span>
-              <h3 className="mb-2 text-lg font-bold text-[#0f172a]">{f.title}</h3>
-              <p className="text-sm leading-6 text-[#64748b]">{f.desc}</p>
-            </motion.div>
+                <StarRating rating={car.rating} />
+                <div className="flex items-center justify-between">
+                  <p className="text-lg font-semibold text-slate-950">{car.price}</p>
+                  <button
+                    type="button"
+                    onClick={() => onBookCar(car.name)}
+                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                  >
+                    Book Now
+                  </button>
+                </div>
+              </div>
+            </motion.article>
           ))}
         </div>
       </div>
@@ -667,114 +574,176 @@ function AboutSection() {
   );
 }
 
-function Works({ onSelect }) {
-  return (
-    <section id="works" className="py-20 overflow-hidden"
-      style={{ background: "linear-gradient(180deg, #eff8ff 0%, #f8fdff 100%)" }}>
-      <div className="text-center mb-12 px-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#0ea5e9] mb-2">Portfolio</p>
-        <h2 className="text-4xl font-extrabold text-[#0f172a] mb-3">Our Works</h2>
-        <p className="text-[#64748b] text-base max-w-md mx-auto">
-          Hover to preview. Click to explore the full collection.
-        </p>
-      </div>
-
-      <InfiniteCarousel onSelect={onSelect} />
-    </section>
-  );
-}
-
-/* ─── CONTACT ─── */
 function Contact() {
   const [sent, setSent] = useState(false);
 
   return (
-    <section id="contact" className="py-20 px-5 bg-[linear-gradient(180deg,#fdfbff_0%,#eef8ff_100%)]">
-      <div className="max-w-xl mx-auto text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#0ea5e9] mb-2">Get In Touch</p>
-        <h2 className="text-4xl font-extrabold text-[#0f172a] mb-3">Contact Us</h2>
-        <p className="text-[#64748b] mb-10">We'd love to work with you. Send us a message!</p>
+    <section id="contact" className="bg-white py-20">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
+        <motion.div
+          className="rounded-[2rem] bg-slate-950 p-8 text-left text-white shadow-xl shadow-slate-900/10"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">Contact Us</p>
+          <h2 className="mt-4 text-4xl font-semibold">Need help with a ride or business account?</h2>
+          <p className="mt-4 text-base leading-8 text-slate-200">
+            Reach our support desk for instant bookings, fleet partnerships, or custom transport plans.
+          </p>
 
-        {sent ? (
+          <div className="mt-8 grid gap-4">
+            <div className="flex items-start gap-4 rounded-[1.5rem] bg-white/5 p-4">
+              <FaPhoneAlt className="mt-1 text-sky-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">Phone</p>
+                <a href="tel:9597968252" className="text-sm text-slate-200 no-underline">
+                  9597968252 / 9360329290
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 rounded-[1.5rem] bg-white/5 p-4">
+              <FaPhoneAlt className="mt-1 text-sky-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">WhatsApp</p>
+                <a href="tel:8870845252" className="text-sm text-slate-200 no-underline">
+                  8870845252
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 rounded-[1.5rem] bg-white/5 p-4">
+              <FaEnvelope className="mt-1 text-sky-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">Email</p>
+                <a href="mailto:rides@skylinecabs.in" className="text-sm text-slate-200 no-underline">
+                  rides@skylinecabs.in
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 rounded-[1.5rem] bg-white/5 p-4">
+              <FaMapMarkerAlt className="mt-1 text-sky-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">Office Address</p>
+                <p className="text-sm leading-7 text-slate-200">
+                  Neithal, New Housing Unit, New Bus Stand, Thanjavur - 7.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 rounded-[1.5rem] bg-white/5 p-4">
+              <FaUsers className="mt-1 text-sky-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">Owner</p>
+                <p className="text-sm text-slate-200">M.DURAI PANDIYAN</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid gap-6">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-green-50 border border-green-200 rounded-2xl p-8 text-green-700 font-semibold"
-          >
-            ✅ Message sent! We'll get back to you soon.
-          </motion.div>
-        ) : (
-          <motion.div
-            className="rounded-3xl border border-white bg-white/85 p-8 text-left flex flex-col gap-4 shadow-sm backdrop-blur"
-            initial={{ opacity: 0, y: 20 }}
+            className="overflow-hidden rounded-[2rem] border border-slate-200 shadow-lg shadow-slate-900/5"
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-80px" }}
           >
+            <iframe
+              title="SRI JEYARAM TRAVELS office location"
+              src="https://www.google.com/maps?q=New%20Bus%20Stand%20Thanjavur&z=14&output=embed"
+              className="h-[320px] w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </motion.div>
+
+          <motion.form
+            className="grid gap-4 rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-lg shadow-slate-900/5"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              setSent(true);
+            }}
+          >
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-600">Message Us</p>
+              <h3 className="mt-2 text-2xl font-semibold text-slate-950">Send your travel requirement</h3>
+            </div>
             <input
               type="text"
-              placeholder="Your Name"
-              className="w-full !bg-white border border-sky-100 rounded-xl px-4 py-3 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#38bdf8]"
+              placeholder="Your name"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+              required
             />
             <input
               type="tel"
-              placeholder="Phone Number"
-              className="w-full !bg-white border border-sky-100 !outline-none rounded-xl px-4 py-3 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#38bdf8]"
+              placeholder="Phone number"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+              required
             />
             <textarea
               rows={4}
-              placeholder="Describe your requirement..."
-              className="w-full !bg-white border border-sky-100 rounded-xl px-4 py-3 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#38bdf8] resize-none"
+              placeholder="Tell us your route or cab requirement"
+              className="resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+              required
             />
-            <motion.button
-              className="bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#fb7185] text-white font-semibold px-6 py-3 rounded-full transition-colors shadow-lg"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setSent(true)}
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 font-semibold text-white transition hover:bg-sky-600"
             >
               Send Message
-            </motion.button>
-          </motion.div>
-        )}
+              <FaArrowRight />
+            </button>
+            {sent && <p className="text-sm font-medium text-emerald-600">Thanks. Our team will call you shortly.</p>}
+          </motion.form>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ─── FOOTER ─── */
 function Footer() {
   return (
-    <footer className="bg-[#08101d] text-[#c8d8ea] py-10 px-5 text-center">
-      <p className="text-2xl font-bold text-white mb-1">
-        <span className="text-[#8be9ff]">Arri</span> Designs
-      </p>
-      <p className="text-sm mb-4">Handcrafted garments, crafted with love in Salem, Tamil Nadu.</p>
-      <p className="text-xs text-[#8f7a67]">© {new Date().getFullYear()} Arri Designs. All rights reserved.</p>
+    <footer className="bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-2xl font-semibold">SRI JEYARAM TRAVELS</p>
+          <p className="mt-2 text-sm text-slate-300">Professional cab booking service for city rides, airport transfers, and outstation travel.</p>
+        </div>
+        <div className="flex flex-wrap gap-3 text-sm text-slate-300">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2">
+            <FaUsers className="text-sky-300" />
+            Owner: M.DURAI PANDIYAN
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2">
+            <FaPhoneAlt className="text-sky-300" />
+            WhatsApp: 8870845252
+          </span>
+        </div>
+      </div>
     </footer>
   );
 }
 
-/* ─── ROOT APP ─── */
 export default function Portfolio() {
-  const [selected, setSelected] = useState(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(cars[0].name);
+
+  const openBooking = (carName = cars[0].name) => {
+    setSelectedCar(carName);
+    setBookingOpen(true);
+  };
 
   return (
-    <div className="font-sans antialiased">
-      <Header />
-      <Home />
-      <AboutSection />
-      <Works onSelect={setSelected} />
+    <div className="bg-white text-slate-950">
+      <Header onBook={() => openBooking()} />
+      <Hero onBook={() => openBooking()} />
+
+      <About />
+      <Fleet onBookCar={openBooking} />
       <Contact />
       <Footer />
-
-      <AnimatePresence>
-        {selected && <Modal item={selected} onClose={() => setSelected(null)} />}
-      </AnimatePresence>
-
-      <style>{`
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
+      <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} defaultCar={selectedCar} />
     </div>
   );
 }
